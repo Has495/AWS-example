@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag Docker image
-        run: docker tag my-webserver ghcr.io/${{ github.repository_owner }}/my-webserver:latest
+        run: docker tag my-webserver ghcr.io/has495/my-webserver:latest
 
       - name: Push Docker image to GHCR
-        run: docker push ghcr.io/${{ github.repository_owner }}/my-webserver:latest
+        run: docker push ghcr.io/has495/my-webserver:latest
