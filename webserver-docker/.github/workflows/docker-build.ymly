@@ -1,6 +1,0 @@
-name: Docker
-
-on:
-  push:
-    branches:
-      - main
