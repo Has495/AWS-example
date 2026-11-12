@@ -1,0 +1,43 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Docker build
+        run: docker build -t my-webserver .
+
+      - name: Start Docker
+        run: docker run -d -p 8080:80 my-webserver
+
+      - name: Test Website
+        run: curl -f -I http://localhost:8080
+
+      - name: Test Website Content
+        run: curl -s http://localhost:8080 | grep -q "Lesson 40 - Docker Deployment Successful"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag Docker image
+        run: docker tag my-webserver ghcr.io/${{ github.repository_owner }}/my-webserver:latest
+
+      - name: Push Docker image to GHCR
+        run: docker push ghcr.io/${{ github.repository_owner }}/my-webserver:latest
