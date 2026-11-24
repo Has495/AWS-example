@@ -1,5 +1,5 @@
 
-name: Project_2
+name: Project 2
 
 on:
   push:
@@ -20,14 +20,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-    
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::984220190692:role/project-2-github-role
           aws-region: eu-west-2
-      
-
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -39,15 +37,32 @@ jobs:
           ECR_REPOSITORY: project-2-webserver
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./project-2-docker-cicd
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            ./project-2-docker-cicd
 
-      - name: Deploy to Amazon ECS
-         run: |
-          aws ssm send-command \
-            --document-name "AWS-RunShellScript"
-            --targets "Key=tag:Name,Values=project-2-ec2" \
-            --comment "Deploying Docker image to ECS" \
-          -- region eu-west-2 \
-      
-      
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Test SSM connection to EC2
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --instance-ids "i-021b7c8574eed06f0" \
+            --parameters 'commands=["echo SSM connection successful"]' \
+            --region eu-west-2 \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "i-021b7c8574eed06f0" \
+            --region eu-west-2
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "i-021b7c8574eed06f0" \
+            --region eu-west-2 \
+            --query "[Status,StandardOutputContent]" \
+            --output text
