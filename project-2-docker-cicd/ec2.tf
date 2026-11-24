@@ -10,6 +10,9 @@ resource "aws_instance" "app_server" {
   tags = {
     Name = "project_2_app_server"
   }
+  lifecycle {
+    ignore_changes = [user_data]
+  }
 }
 
 

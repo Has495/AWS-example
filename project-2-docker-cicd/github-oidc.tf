@@ -56,7 +56,9 @@ resource "aws_iam_policy" "ecr_policy" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
+          "ecr:PutImage",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
         ]
 
         Resource = aws_ecr_repository.project-2-webserver.arn
@@ -69,3 +71,4 @@ resource "aws_iam_role_policy_attachment" "ecr_policy_attachment" {
   role       = aws_iam_role.project_2_github_role.name
   policy_arn = aws_iam_policy.ecr_policy.arn
 }
+
