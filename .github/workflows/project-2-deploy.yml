@@ -40,15 +40,24 @@ jobs:
           docker build \
             -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
             ./project-2-docker-cicd
-
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
-      - name: Pull Docker image on EC2
+      - name: Deploy Docker website to EC2
         run: |
           COMMAND_ID=$(aws ssm send-command \
             --document-name "AWS-RunShellScript" \
             --instance-ids "i-021b7c8574eed06f0" \
-            --parameters '{"commands":["set -e","aws ecr get-login-password --region eu-west-2 | sudo docker login --username AWS --password-stdin 984220190692.dkr.ecr.eu-west-2.amazonaws.com","sudo docker pull 984220190692.dkr.ecr.eu-west-2.amazonaws.com/project-2-webserver:latest"]}' \
+            --parameters '{
+              "commands": [
+                "set -e",
+                "aws ecr get-login-password --region eu-west-2 | sudo docker login --username AWS --password-stdin 984220190692.dkr.ecr.eu-west-2.amazonaws.com",
+                "sudo docker pull 984220190692.dkr.ecr.eu-west-2.amazonaws.com/project-2-webserver:latest",
+                "sudo docker rm -f vibrant_ardinghelli || true",
+                "sudo docker rm -f project-2-webserver || true",
+                "sudo docker run -d --name project-2-webserver --restart unless-stopped -p 80:80 984220190692.dkr.ecr.eu-west-2.amazonaws.com/project-2-webserver:latest",
+                "curl -fsS http://127.0.0.1/website.html",
+                "sudo docker ps --filter name=project-2-webserver"
+              ]
+            }' \
             --region eu-west-2 \
             --query "Command.CommandId" \
             --output text)
