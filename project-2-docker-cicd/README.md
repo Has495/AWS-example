@@ -22,37 +22,7 @@ To verify the pipeline end to end, I changed `website.html`, pushed the change t
 ## 3. Architecture and CI/CD Pipeline
 
 
-Developer
-    |
-    | Git Push
-    v
-GitHub Repository (main)
-    |
-    v
-GitHub Actions
-    |
-    | OIDC Authentication
-    v
-AWS IAM Role
-    |
-    +---- Build Docker Image
-    |
-    +---- Push Image ---> Amazon ECR
-    |
-    +---- SSM Run Command
-                           |
-                           v
-                     Amazon EC2
-                           |
-                           | Pull Image from ECR
-                           v
-                     Docker Container
-                           |
-                           v
-                       Nginx
-                           |
-                           v
-                    Website (HTTP 80)
+[Project 2 AWS Architecture](AWS%20Cloud%20Deployment%20Architecture%20Diagram.png)
 
 **Deployment sequence:** A push to `main` triggers the workflow, which builds an image and pushes it to ECR. GitHub Actions then uses SSM to tell EC2 to authenticate with ECR, pull the latest image, replace the website container and check that the site responds over HTTP.
 
